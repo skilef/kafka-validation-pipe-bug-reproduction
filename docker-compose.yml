@@ -1,0 +1,68 @@
+version: '3.7'
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:5.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+    restart: always
+    networks:
+      - my-network
+
+  kafka:
+    image: confluentinc/cp-kafka:5.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - 9092:9092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_INTERNAL:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092,PLAINTEXT_INTERNAL://kafka:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    restart: always
+    networks:
+      - my-network
+
+  # app:
+  #   container_name: onsite-video-compressor
+  #   image: 177382028706.dkr.ecr.eu-central-1.amazonaws.com/captains-eye-ecr-onsite-video-compressor:develop-latest
+  #   runtime: nvidia
+  #   env_file:
+  #     - ./apps/onsite-video-compressor/.env
+  #   networks:
+  #     - my-network
+  #   volumes:
+  #     - /home/felix/Downloads:/videos/
+  #   deploy:
+  #     resources:
+  #       reservations:
+  #         devices:
+  #           - driver: nvidia
+  #             count: 1
+  #             capabilities: [ gpu ]
+
+  # kafka-ui is not mendatory for the bug reproduction
+  kafka-ui:
+    container_name: kafka-ui
+    image: provectuslabs/kafka-ui:latest
+    ports:
+      - 8080:8080
+    depends_on:
+      - zookeeper
+      - kafka
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    networks:
+      - my-network
+
+networks:
+  my-network:
+    driver: bridge
