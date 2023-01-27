@@ -1,5 +1,11 @@
 # Kafka + validation pipe bug
 
+Clone the repo:
+```bash
+  git clone https://github.com/skilef/kafka-validation-pipe-bug-reproduction.git
+  cd ./kafka-validation-pipe-bug-reproduction
+```
+
 Prepare the environment:
 
 ```bash
